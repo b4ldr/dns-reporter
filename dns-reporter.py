@@ -53,12 +53,13 @@ class DnsReporterHanlder(SocketServer.BaseRequestHandler):
         return answer
 
     def _trace(self, answer, rdclass, rdtype):
+        answer.add(dns.rdtypes.txtbase.TXTBase(
+            rdclass, rdtype, '0:{}'.format(socket.gethostname())))
         ans, unans = scapy.all.sr(scapy.all.IP(dst=self.client_address[0],
             ttl=(1,24))/scapy.all.UDP(
             dport=self.client_address[1],sport=53),timeout=3)
         for snd,rcv in ans:
-            string = '{} {}'.format(rcv.src, snd.ttl)
-            print string
+            string = '{}:{}'.format(snd.ttl, rcv.src)
             answer.add(dns.rdtypes.txtbase.TXTBase(
                 rdclass, rdtype, string))
         return answer
